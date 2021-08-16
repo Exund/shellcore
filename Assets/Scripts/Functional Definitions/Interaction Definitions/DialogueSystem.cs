@@ -140,9 +140,9 @@ public class DialogueSystem : MonoBehaviour, IDialogueOverrideHandler
     // Traverse quest graph
     public void startQuests()
     {
-        for (int i = 0; i < traversers.Count; i++)
+        foreach (var traverser in traversers)
         {
-            traversers[i].StartQuest();
+            traverser.StartQuest();
         }
     }
 
@@ -216,18 +216,20 @@ public class DialogueSystem : MonoBehaviour, IDialogueOverrideHandler
         textRenderer.font = shellcorefont;
 
         // radio image 
-        if (window.GetComponentInChildren<SelectionDisplayHandler>())
+        var selectionDispalyHandler = window.GetComponentInChildren<SelectionDisplayHandler>();
+        if (selectionDispalyHandler)
         {
+            var nameText = window.transform.Find("Name").GetComponent<Text>();
             if (speaker)
             {
                 DialogueViewTransitionIn(speaker);
-                window.GetComponentInChildren<SelectionDisplayHandler>().AssignDisplay(speaker.blueprint, null, speaker.faction);
-                window.transform.Find("Name").GetComponent<Text>().text = speaker.blueprint.entityName;
+                selectionDispalyHandler.AssignDisplay(speaker.blueprint, null, speaker.faction);
+                nameText.text = speaker.blueprint.entityName;
             }
             else
             {
-                window.GetComponentInChildren<SelectionDisplayHandler>().gameObject.SetActive(false);
-                window.transform.Find("Name").GetComponent<Text>().text = "Unknown Speaker";
+                selectionDispalyHandler.gameObject.SetActive(false);
+                nameText.text = "Unknown Speaker";
             }
         }
 
@@ -302,13 +304,14 @@ public class DialogueSystem : MonoBehaviour, IDialogueOverrideHandler
         window.Activate();
         window.transform.SetSiblingIndex(0);
 
+        var victoryText = window.transform.Find("Victory").GetComponent<Text>();
         if (victory)
         {
-            window.transform.Find("Victory").GetComponent<Text>().text = "<color=lime>VICTORY!</color>";
+            victoryText.text = "<color=lime>VICTORY!</color>";
         }
         else
         {
-            window.transform.Find("Victory").GetComponent<Text>().text = "<color=red>DEFEAT</color>";
+            victoryText.text = "<color=red>DEFEAT</color>";
         }
 
         battleZoneManager = FindObjectOfType<BattleZoneManager>();
@@ -357,18 +360,21 @@ public class DialogueSystem : MonoBehaviour, IDialogueOverrideHandler
         window.Activate();
         window.transform.SetSiblingIndex(0);
 
+        var holder = window.transform.Find("Holder");
+        var missionNameText = holder.Find("Mission Name").GetComponent<Text>();
+
         if (mission.name.Length <= 33)
         {
-            window.transform.Find("Holder").Find("Mission Name").GetComponent<Text>().text = mission.name.ToUpper();
+            missionNameText.text = mission.name.ToUpper();
         }
         else
         {
-            window.transform.Find("Holder").Find("Mission Name").GetComponent<Text>().text = mission.name.ToUpper().Substring(0, 30) + "...";
+            missionNameText.text = mission.name.ToUpper().Substring(0, 30) + "...";
         }
-
-        window.transform.Find("Rank").GetComponent<Text>().text = mission.rank.ToUpper();
-        window.transform.Find("Rank").GetComponent<Text>().color = TaskDisplayScript.rankColorsByString[mission.rank];
-        window.transform.Find("Holder").Find("Rewards").GetComponent<Text>().text = rewardsText;
+        var rankText = window.transform.Find("Rank").GetComponent<Text>();
+        rankText.text = mission.rank.ToUpper();
+        rankText.color = TaskDisplayScript.rankColorsByString[mission.rank];
+        holder.Find("Rewards").GetComponent<Text>().text = rewardsText;
     }
 
     public static void ShowDialogueNode(NodeEditorFramework.Standard.DialogueNode node, Entity speaker = null)
@@ -418,6 +424,8 @@ public class DialogueSystem : MonoBehaviour, IDialogueOverrideHandler
 
         gameObject.transform.Find("Reputation Reward Text").GetComponent<Text>().text =
             "Reputation reward: " + wrapper.reputationReward;
+
+        var backgroudBox = gameObject.transform.Find("backgroundbox");
         // Part reward
         if (wrapper.partReward)
         {
@@ -436,7 +444,6 @@ public class DialogueSystem : MonoBehaviour, IDialogueOverrideHandler
             // Ability image:
             if (wrapper.partAbilityID > 0)
             {
-                var backgroudBox = gameObject.transform.Find("backgroundbox");
                 var abilityIcon = backgroudBox.Find("Ability").GetComponent<Image>();
                 var tierIcon = backgroudBox.Find("Tier").GetComponent<Image>();
                 var type = backgroudBox.Find("Type").GetComponent<Text>();
@@ -452,21 +459,23 @@ public class DialogueSystem : MonoBehaviour, IDialogueOverrideHandler
                     tierIcon.enabled = false;
                 }
 
-                type.text = AbilityUtilities.GetAbilityNameByID(wrapper.partAbilityID, null) + (wrapper.partTier > 0 ? " " + wrapper.partTier : "");
+                var typeText = AbilityUtilities.GetAbilityNameByID(wrapper.partAbilityID, null) + (wrapper.partTier > 0 ? " " + wrapper.partTier : "");
+                type.text = typeText;
+
                 string description = "";
-                description += AbilityUtilities.GetAbilityNameByID(wrapper.partAbilityID, null) + (wrapper.partTier > 0 ? " " + wrapper.partTier : "") + "\n";
+                description += typeText + "\n";
                 description += AbilityUtilities.GetDescriptionByID(wrapper.partAbilityID, wrapper.partTier, null);
                 abilityTooltip.abilityInfo = description;
             }
             else
             {
-                gameObject.transform.Find("backgroundbox").gameObject.SetActive(false);
+                backgroudBox.gameObject.SetActive(false);
             }
         }
         else
         {
             gameObject.transform.Find("Part").GetComponent<Image>().enabled = false;
-            gameObject.transform.Find("backgroundbox").gameObject.SetActive(false);
+            backgroudBox.gameObject.SetActive(false);
         }
     }
 
@@ -661,9 +670,9 @@ public class DialogueSystem : MonoBehaviour, IDialogueOverrideHandler
         // clear everything
         if (buttons != null)
         {
-            for (int i = 0; i < buttons.Length; i++)
+            foreach (var button in buttons)
             {
-                Destroy(buttons[i]);
+                Destroy(button);
             }
         }
 
@@ -958,9 +967,9 @@ public class DialogueSystem : MonoBehaviour, IDialogueOverrideHandler
     {
         if (traversers != null)
         {
-            for (int i = 0; i < traversers.Count; i++)
+            foreach (var traverser in traversers)
             {
-                traversers[i].nodeCanvas.Destroy();
+                traverser.nodeCanvas.Destroy();
             }
         }
 

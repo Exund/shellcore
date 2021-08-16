@@ -145,13 +145,13 @@ public class TractorBeam : MonoBehaviour
             Transform closest = null;
             float closestD = float.MaxValue;
 
-            for (int i = 0; i < energies.Length; i++)
+            foreach (var energy in energies)
             {
-                float sqrD = Vector3.SqrMagnitude(transform.position - energies[i].transform.position);
-                if ((closest == null || sqrD < closestD) && !energies[i].GetComponent<Draggable>().dragging)
+                float sqrD = Vector3.SqrMagnitude(transform.position - energy.transform.position);
+                if ((closest == null || sqrD < closestD) && !energy.GetComponent<Draggable>().dragging)
                 {
                     closestD = sqrD;
-                    closest = energies[i].transform;
+                    closest = energy.transform;
                 }
             }
 

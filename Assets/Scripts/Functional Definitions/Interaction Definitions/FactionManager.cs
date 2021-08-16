@@ -26,19 +26,19 @@ public class FactionManager : MonoBehaviour
 
         int maxID = -1;
         bool playerFound = false;
-        for (int i = 0; i < fs.Length; i++)
+        foreach (var faction in fs)
         {
-            if (!isValid(fs[i]))
+            if (!isValid(faction))
             {
-                Debug.Log("Invalid faction: " + fs[i].factionName);
+                Debug.Log("Invalid faction: " + faction.factionName);
             }
 
-            if (maxID < fs[i].ID)
+            if (maxID < faction.ID)
             {
-                maxID = fs[i].ID;
+                maxID = faction.ID;
             }
 
-            if (fs[i].ID == 0)
+            if (faction.ID == 0)
             {
                 playerFound = true;
             }
@@ -56,14 +56,14 @@ public class FactionManager : MonoBehaviour
 
         // This may leave some empty indices in-between, but it should be fast
         factions = new Faction[maxID + 1];
-        for (int i = 0; i < fs.Length; i++)
+        foreach (var faction in fs)
         {
-            if (factions[fs[i].ID] == null)
+            if (factions[faction.ID] == null)
             {
                 factionCount++;
             }
 
-            factions[fs[i].ID] = fs[i];
+            factions[faction.ID] = faction;
         }
     }
 

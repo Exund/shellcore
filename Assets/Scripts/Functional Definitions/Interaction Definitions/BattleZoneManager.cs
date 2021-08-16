@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class BattleZoneManager : MonoBehaviour
@@ -165,22 +166,22 @@ public class BattleZoneManager : MonoBehaviour
             List<int> livingFactions = new List<int>();
 
             // Create dictionary entries for counts of existing target entities of each faction
-            for (int i = 0; i < targets.Count; i++)
+            foreach (var target in targets)
             {
-                if (targets[i] && !targets[i].GetIsDead() && !livingFactions.Contains(targets[i].faction))
+                if (target && !target.GetIsDead() && !livingFactions.Contains(target.faction))
                 {
-                    livingFactions.Add(targets[i].faction);
+                    livingFactions.Add(target.faction);
                 }
             }
 
             bool allAllied = true;
 
-            for (int i = 0; i < livingFactions.Count; i++)
+            foreach (var f1 in livingFactions)
             {
-                for (int j = 0; j < livingFactions.Count; j++)
+                foreach (var f2 in livingFactions)
                 {
-                    if (!FactionManager.IsAllied(livingFactions[i], livingFactions[j]) ||
-                        !FactionManager.IsAllied(livingFactions[j], livingFactions[i]))
+                    if (!FactionManager.IsAllied(f1, f2) ||
+                        !FactionManager.IsAllied(f2, f1))
                     {
                         allAllied = false;
                         break;
@@ -190,25 +191,22 @@ public class BattleZoneManager : MonoBehaviour
 
             if ((livingFactions.Count < 2 || allAllied))
             {
-                foreach (Entity playerEntity in targets)
+                foreach (var playerEntity in targets.Where(playerEntity => playerEntity as PlayerCore))
                 {
-                    if (playerEntity as PlayerCore)
+                    if (livingFactions.Contains(playerEntity.faction))
                     {
-                        if (livingFactions.Contains(playerEntity.faction))
+                        AudioManager.PlayClipByID("clip_victory");
+                        if (NodeEditorFramework.Standard.WinBattleCondition.OnBattleWin != null)
                         {
-                            AudioManager.PlayClipByID("clip_victory");
-                            if (NodeEditorFramework.Standard.WinBattleCondition.OnBattleWin != null)
-                            {
-                                NodeEditorFramework.Standard.WinBattleCondition.OnBattleWin.Invoke(sectorName);
-                            }
+                            NodeEditorFramework.Standard.WinBattleCondition.OnBattleWin.Invoke(sectorName);
                         }
-                        else
+                    }
+                    else
+                    {
+                        AudioManager.PlayClipByID("clip_fail");
+                        if (NodeEditorFramework.Standard.WinBattleCondition.OnBattleLose != null)
                         {
-                            AudioManager.PlayClipByID("clip_fail");
-                            if (NodeEditorFramework.Standard.WinBattleCondition.OnBattleLose != null)
-                            {
-                                NodeEditorFramework.Standard.WinBattleCondition.OnBattleLose.Invoke(sectorName);
-                            }
+                            NodeEditorFramework.Standard.WinBattleCondition.OnBattleLose.Invoke(sectorName);
                         }
                     }
                 }

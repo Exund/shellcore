@@ -70,8 +70,9 @@ public class PassiveDialogueSystem : MonoBehaviour
 
         while (passiveDialogueContents.childCount > 0)
         {
-            passiveDialogueContents.GetChild(0).localScale = new Vector3(1, 1, 1);
-            passiveDialogueContents.GetChild(0).SetParent(archiveContents, false);
+            var firstChild = passiveDialogueContents.GetChild(0);
+            firstChild.localScale = new Vector3(1, 1, 1);
+            firstChild.SetParent(archiveContents, false);
         }
     }
 

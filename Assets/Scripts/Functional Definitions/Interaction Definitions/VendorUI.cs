@@ -73,36 +73,37 @@ public class VendorUI : MonoBehaviour, IDialogueable, IWindow
         for (int i = 0; i < blueprint.items.Count; i++)
         {
             int index = i;
-            buttons[i] = Instantiate(buttonPrefab);
+            var buttonGO = buttons[i] = Instantiate(buttonPrefab);
+            var item = blueprint.items[i];
 
-            RectTransform rt = buttons[i].GetComponent<RectTransform>();
+            RectTransform rt = buttonGO.GetComponent<RectTransform>();
             rt.SetParent(background, false);
             rt.anchoredPosition = new Vector2(185 + (i % 5) * 64, -40 - (i > 4 ? 64 : 0));
 
-            Button button = buttons[i].GetComponent<Button>();
+            Button button = buttonGO.GetComponent<Button>();
             button.onClick.AddListener(() => { onButtonPressed(index); });
 
-            VendorUIButton vendorUIButton = buttons[i].GetComponent<VendorUIButton>();
+            VendorUIButton vendorUIButton = buttonGO.GetComponent<VendorUIButton>();
 
-            if (player.GetPower() < blueprint.items[i].cost)
+            if (player.GetPower() < item.cost)
             {
-                buttons[i].GetComponent<Image>().color = new Color(0, 0, 0.4F);
+                buttonGO.GetComponent<Image>().color = new Color(0, 0, 0.4F);
             }
 
-            vendorUIButton.blueprint = blueprint.items[i].entityBlueprint;
-            vendorUIButton.costText = $"POWER COST: <color=cyan>{blueprint.items[i].cost}</color>";
-            vendorUIButton.descriptionText = blueprint.items[i].description;
+            vendorUIButton.blueprint = item.entityBlueprint;
+            vendorUIButton.costText = $"POWER COST: <color=cyan>{item.cost}</color>";
+            vendorUIButton.descriptionText = item.description;
             vendorUIButton.tooltipPrefab = tooltipPrefab;
             vendorUIButton.costInfo = costInfo;
             vendorUIButton.nameInfo = nameInfo;
             vendorUIButton.handler = UI.GetComponentInChildren<SelectionDisplayHandler>();
 
-            Image sr = buttons[i].transform.Find("Icon").GetComponent<Image>();
-            sr.sprite = blueprint.items[i].icon;
+            Image sr = buttonGO.transform.Find("Icon").GetComponent<Image>();
+            sr.sprite = item.icon;
 
-            Text[] texts = buttons[i].GetComponentsInChildren<Text>();
+            Text[] texts = buttonGO.GetComponentsInChildren<Text>();
             texts[0].text = (i + 1).ToString();
-            texts[1].text = blueprint.items[i].cost.ToString();
+            texts[1].text = item.cost.ToString();
             texts[1].color = Color.cyan;
         }
 
@@ -155,13 +156,14 @@ public class VendorUI : MonoBehaviour, IDialogueable, IWindow
 
             for (int i = 0; i < blueprint.items.Count; i++)
             {
+                var image = buttons[i].GetComponent<Image>();
                 if (player.GetPower() < blueprint.items[i].cost)
                 {
-                    buttons[i].GetComponent<Image>().color = new Color(0, 0, 0.4F);
+                    image.color = new Color(0, 0, 0.4F);
                 }
                 else
                 {
-                    buttons[i].GetComponent<Image>().color = Color.white;
+                    image.color = Color.white;
                 }
             }
         }
@@ -184,29 +186,35 @@ public class VendorUI : MonoBehaviour, IDialogueable, IWindow
 
         GameObject creation = new GameObject();
         creation.transform.position = vendor.GetPosition();
-        var blueprint = vendor.GetVendingBlueprint();
-        switch (blueprint.items[index].entityBlueprint.intendedType)
+        var item = vendor.GetVendingBlueprint().items[index];
+        var entityBlueprint = item.entityBlueprint;
+        switch (entityBlueprint.intendedType)
         {
             case EntityBlueprint.IntendedType.Turret:
                 Turret tur = creation.AddComponent<Turret>();
-                tur.blueprint = blueprint.items[index].entityBlueprint;
+                tur.blueprint = entityBlueprint;
                 core.SetTractorTarget(creation.GetComponent<Draggable>());
                 tur.SetOwner(core);
 
-                if (SectorManager.instance && SectorManager.instance.GetComponentInChildren<BattleZoneManager>())
+                if (SectorManager.instance)
                 {
-                    var stats = SectorManager.instance.GetComponentInChildren<BattleZoneManager>().stats.Find(s => s.faction == core.faction);
-                    if (stats == null)
+                    var BZM = SectorManager.instance.GetComponentInChildren<BattleZoneManager>();
+                    if (BZM)
                     {
-                        stats = new BattleZoneManager.Stats(core.faction);
-                        SectorManager.instance.GetComponentInChildren<BattleZoneManager>().stats.Add(stats);
+                        var stats = BZM.stats.Find(s => s.faction == core.faction);
+                        if (stats == null)
+                        {
+                            stats = new BattleZoneManager.Stats(core.faction);
+                            BZM.stats.Add(stats);
+                        }
+
+                        stats.turretSpawns++;
                     }
-                    stats.turretSpawns++;
                 }
                 break;
             case EntityBlueprint.IntendedType.Tank:
                 Tank tank = creation.AddComponent<Tank>();
-                tank.blueprint = blueprint.items[index].entityBlueprint;
+                tank.blueprint = entityBlueprint;
                 tank.SetOwner(core);
                 break;
             default:
@@ -215,9 +223,9 @@ public class VendorUI : MonoBehaviour, IDialogueable, IWindow
 
         creation.GetComponent<Entity>().spawnPoint = vendor.GetPosition();
         creation.GetComponent<Entity>().faction = core.faction;
-        creation.name = blueprint.items[index].entityBlueprint.name;
-        core.sectorMngr.InsertPersistentObject(blueprint.items[index].entityBlueprint.name, creation);
-        core.AddPower(-blueprint.items[index].cost);
+        creation.name = entityBlueprint.name;
+        core.sectorMngr.InsertPersistentObject(entityBlueprint.name, creation);
+        core.AddPower(-item.cost);
         return creation.GetComponent<Entity>();
     }
 

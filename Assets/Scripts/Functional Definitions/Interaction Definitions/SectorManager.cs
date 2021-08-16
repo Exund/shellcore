@@ -163,8 +163,9 @@ public class SectorManager : MonoBehaviour
         var inCurrentSector = player && current != null &&
             (inBoundsOscillating) && current.dimension == player.Dimension;
 
-        var isBz = GetCurrentType() == Sector.SectorType.BattleZone;
-        var isSiege = GetCurrentType() == Sector.SectorType.SiegeZone;
+        var currentType = GetCurrentType();
+        var isBz = currentType == Sector.SectorType.BattleZone;
+        var isSiege = currentType == Sector.SectorType.SiegeZone;
         var abortTimerFinished = abortTimer <= 1;
         var playing = (isBz && battleZone.playing) || (isSiege && siegeZone.playing);
 
@@ -203,15 +204,16 @@ public class SectorManager : MonoBehaviour
         }
 
         // deadzone damage
-        if (current && GetCurrentType() == Sector.SectorType.DangerZone)
+        if (current && currentType == Sector.SectorType.DangerZone)
         {
             if (dangerZoneTimer >= 5 && !player.GetIsDead())
             {
                 dangerZoneTimer = 0;
                 Instantiate(damagePrefab, player.transform.position, Quaternion.identity);
                 var curHealth = player.CurrentHealth;
-                curHealth[0] -= (deadzoneDamage * player.GetMaxHealth()[0]);
-                curHealth[1] -= (deadzoneDamage * player.GetMaxHealth()[1]);
+                var maxHealth = player.GetMaxHealth();
+                curHealth[0] -= (deadzoneDamage * maxHealth[0]);
+                curHealth[1] -= (deadzoneDamage * maxHealth[1]);
                 player.CurrentHealth = curHealth;
                 player.alerter.showMessage("WARNING: Leave Sector!", "clip_stationlost");
                 deadzoneDamage += deadzoneDamageMult;
@@ -246,26 +248,29 @@ public class SectorManager : MonoBehaviour
 
     public void AttemptSectorLoad(Sector.SectorType? lastSectorType = null)
     {
-        var inCurrentSector = player && current != null &&
-                              (current.bounds.contains(player.GetSectorPosition())) && current.dimension == player.Dimension;
-        if (player && (current == null || !inCurrentSector))
+        if (player)
         {
-            // load sector
-            for (int i = 0; i < sectors.Count; i++)
+            var sectorPosition = player.GetSectorPosition();
+            var inCurrentSector = current != null && current.bounds.contains(sectorPosition) && current.dimension == player.Dimension;
+            if (current == null || !inCurrentSector)
             {
-                if (sectors[i].bounds.contains(player.GetSectorPosition()) && sectors[i].dimension == player.Dimension)
+                // load sector
+                foreach (var sector in sectors)
                 {
-                    Sector.SectorType? oldType = null;
-                    int oldDimension = 0;
-                    if (current != null)
+                    if (sector.bounds.contains(sectorPosition) && sector.dimension == player.Dimension)
                     {
-                        oldType = current.type;
-                        oldDimension = current.dimension;
-                    }
+                        Sector.SectorType? oldType = null;
+                        int oldDimension = 0;
+                        if (current != null)
+                        {
+                            oldType = current.type;
+                            oldDimension = current.dimension;
+                        }
 
-                    current = sectors[i];
-                    loadSector(oldType, oldDimension);
-                    break;
+                        current = sector;
+                        loadSector(oldType, oldDimension);
+                        break;
+                    }
                 }
             }
         }
@@ -876,7 +881,8 @@ public class SectorManager : MonoBehaviour
                 var skipTag = false;
                 foreach (var oj in objects)
                 {
-                    if (oj.Value.GetComponentInChildren<Entity>() && oj.Value.GetComponentInChildren<Entity>().ID == ch.ID)
+                    var ent = oj.Value.GetComponentInChildren<Entity>();
+                    if (ent && ent.ID == ch.ID)
                     {
                         skipTag = true;
                         return true;
@@ -948,12 +954,12 @@ public class SectorManager : MonoBehaviour
                     }
                 }
 
-                for (int i = 0; i < current.targets.Length; i++)
+                foreach (var target in current.targets)
                 {
-                    if (objects[current.targets[i]].GetComponent<ShellCore>())
+                    var shellcore = objects[target].GetComponent<ShellCore>();
+                    if (shellcore)
                     {
                         // set the carrier of the shellcore to the associated faction's carrier
-                        ShellCore shellcore = objects[current.targets[i]].GetComponent<ShellCore>();
                         if (carriers.ContainsKey(shellcore.faction))
                         {
                             shellcore.SetCarrier(carriers[shellcore.faction]);
@@ -966,7 +972,7 @@ public class SectorManager : MonoBehaviour
                         }
                     }
 
-                    battleZone.AddTarget(objects[current.targets[i]].GetComponent<Entity>());
+                    battleZone.AddTarget(objects[target].GetComponent<Entity>());
                 }
 
                 battleZone.UpdateCounters();
@@ -984,9 +990,9 @@ public class SectorManager : MonoBehaviour
                     siegeZone.waves.Enqueue(wave);
                 }
 
-                for (int i = 0; i < current.targets.Length; i++)
+                foreach (var target in current.targets)
                 {
-                    siegeZone.AddTarget(objects[current.targets[i]].GetComponent<Entity>());
+                    siegeZone.AddTarget(objects[target].GetComponent<Entity>());
                 }
 
                 siegeZone.players.Add(PlayerCore.Instance);
@@ -1035,9 +1041,9 @@ public class SectorManager : MonoBehaviour
         }
 
         // Load entities
-        for (int i = 0; i < current.entities.Length; i++)
+        foreach (var entity in current.entities)
         {
-            bool spawnedChar = SectorLoadEntityCharacterHandler(current.entities[i]);
+            bool spawnedChar = SectorLoadEntityCharacterHandler(entity);
 
             if (spawnedChar)
             {
@@ -1045,12 +1051,12 @@ public class SectorManager : MonoBehaviour
             }
 
             // if it's an already collected shard do not spawn again
-            if (PlayerCore.Instance && PlayerCore.Instance.cursave.locationBasedShardsFound.Contains(current.entities[i].ID))
+            if (PlayerCore.Instance && PlayerCore.Instance.cursave.locationBasedShardsFound.Contains(entity.ID))
             {
                 continue;
             }
 
-            Object obj = ResourceManager.GetAsset<Object>(current.entities[i].assetID);
+            Object obj = ResourceManager.GetAsset<Object>(entity.assetID);
 
             if (obj is GameObject go)
             {
@@ -1059,22 +1065,22 @@ public class SectorManager : MonoBehaviour
                 // TODO: Make some property for level entities that dictates whether they change on faction or not
                 if (!gObj.GetComponent<EnergyRock>() && !gObj.GetComponent<Flag>())
                 {
-                    gObj.GetComponent<SpriteRenderer>().color = FactionManager.GetFactionColor(current.entities[i].faction);
+                    gObj.GetComponent<SpriteRenderer>().color = FactionManager.GetFactionColor(entity.faction);
                 }
 
-                gObj.transform.position = current.entities[i].position;
-                gObj.name = current.entities[i].name;
+                gObj.transform.position = entity.position;
+                gObj.name = entity.name;
                 if (gObj.GetComponent<ShardRock>())
                 {
-                    if (!string.IsNullOrEmpty(current.entities[i].blueprintJSON))
+                    if (!string.IsNullOrEmpty(entity.blueprintJSON))
                     {
-                        gObj.GetComponent<ShardRock>().tier = int.Parse(current.entities[i].blueprintJSON);
+                        gObj.GetComponent<ShardRock>().tier = int.Parse(entity.blueprintJSON);
                     }
 
-                    gObj.GetComponent<ShardRock>().ID = current.entities[i].ID;
+                    gObj.GetComponent<ShardRock>().ID = entity.ID;
                 }
 
-                objects.Add(current.entities[i].ID, gObj);
+                objects.Add(entity.ID, gObj);
             }
             else if (obj is EntityBlueprint blueprint)
             {
@@ -1084,7 +1090,7 @@ public class SectorManager : MonoBehaviour
                     copy.dialogue = Instantiate(blueprint.dialogue);
                 }
 
-                SpawnEntity(copy as EntityBlueprint, current.entities[i]);
+                SpawnEntity(copy as EntityBlueprint, entity);
             }
         }
 
@@ -1143,9 +1149,9 @@ public class SectorManager : MonoBehaviour
         if (current.backgroundSpawns != null)
         // background spawns
         {
-            for (int i = 0; i < current.backgroundSpawns.Length; i++)
+            foreach (var backgroundSpawn in current.backgroundSpawns)
             {
-                var bgSpawn = current.backgroundSpawns[i];
+                var bgSpawn = backgroundSpawn;
                 var print = GetBlueprintOfLevelEntity(bgSpawn.entity);
                 if (print.entityName != "Unnamed")
                 {
