@@ -22,9 +22,10 @@ public class VersionNumberScript : MonoBehaviour
     {
         if (instance)
         {
-            if (instance.GetComponent<Text>())
+            var versionText = instance.GetComponent<Text>();
+            if (versionText)
             {
-                instance.GetComponent<Text>().text = "Version " + version;
+                versionText.text = "Version " + version;
             }
         }
     }

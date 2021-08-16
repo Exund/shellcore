@@ -150,12 +150,12 @@ public class SaveHandler : MonoBehaviour
         save.relations = relations.ToArray();
 
 
-        for (int i = 0; i < taskManager.traversers.Count; i++)
+        foreach (var traverser in taskManager.traversers)
         {
-            var traverser = taskManager.traversers[i];
             var missionName = traverser.nodeCanvas.missionName;
             var lastCheckpoint = traverser.lastCheckpointName;
-            save.missions.Find((m) => m.name == traverser.nodeCanvas.missionName).checkpoint = lastCheckpoint;
+            var traverser1 = traverser;
+            save.missions.Find((m) => m.name == traverser1.nodeCanvas.missionName).checkpoint = lastCheckpoint;
         }
 
         // Calculate the save episode by finding the maximal active mission's epsiode.
