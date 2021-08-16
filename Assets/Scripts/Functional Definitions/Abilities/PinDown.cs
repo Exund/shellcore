@@ -42,15 +42,15 @@ public class PinDown : ActiveAbility
         var targeting = Core.GetTargetingSystem();
         float minDist = rangeSquared;
         target = null;
-        for (int i = 0; i < AIData.entities.Count; i++)
+        foreach (var entity in AIData.entities)
         {
-            if (AIData.entities[i] is Craft && !AIData.entities[i].GetIsDead() && !FactionManager.IsAllied(AIData.entities[i].faction, Core.faction))
+            if (entity is Craft && !entity.GetIsDead() && !FactionManager.IsAllied(entity.faction, Core.faction))
             {
-                float d = (Core.transform.position - AIData.entities[i].transform.position).sqrMagnitude;
-                if (d < minDist && !AIData.entities[i].IsInvisible)
+                float d = (Core.transform.position - entity.transform.position).sqrMagnitude;
+                if (d < minDist && !entity.IsInvisible)
                 {
                     minDist = d;
-                    target = AIData.entities[i] as Craft;
+                    target = entity as Craft;
                 }
             }
         }
@@ -58,7 +58,6 @@ public class PinDown : ActiveAbility
         if (target != null)
         {
             target.AddPin();
-
 
             var missileLinePrefab = new GameObject("Missile Line"); // create prefab and set to parent
             missileLinePrefab.transform.SetParent(transform, false);

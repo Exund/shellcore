@@ -154,12 +154,12 @@ public class IonLineController : MonoBehaviour
 
             var dps = damage * Time.deltaTime;
             var raycastHits = Physics2D.RaycastAll(transform.position, GetVectorByBearing(originalBearing), range);
-            for (int i = 0; i < raycastHits.Length; i++)
+            foreach (var hit in raycastHits)
             {
-                var damageable = raycastHits[i].transform.GetComponentInParent<IDamageable>();
-                if (raycastHits[i].transform && damageable != null && damageable.GetFaction() != Core.faction && !damageable.GetIsDead() && damageable.GetTerrain() != Entity.TerrainType.Ground)
+                var damageable = hit.transform.GetComponentInParent<IDamageable>();
+                if (hit.transform && damageable != null && damageable.GetFaction() != Core.faction && !damageable.GetIsDead() && damageable.GetTerrain() != Entity.TerrainType.Ground)
                 {
-                    var hitTransform = raycastHits[i].transform;
+                    var hitTransform = hit.transform;
 
                     var magnitude = (hitTransform.position - transform.position).magnitude;
                     line.SetPosition(1, transform.position + GetVectorByBearing(originalBearing) * magnitude);
@@ -204,9 +204,10 @@ public class IonLineController : MonoBehaviour
 
             if (duration <= 0)
             {
-                if (transform.parent.GetComponentInChildren<AudioSource>())
+                var audioSource = transform.parent.GetComponentInChildren<AudioSource>();
+                if (audioSource)
                 {
-                    Destroy(transform.parent.GetComponentInChildren<AudioSource>().gameObject);
+                    Destroy(audioSource.gameObject);
                 }
             }
         }

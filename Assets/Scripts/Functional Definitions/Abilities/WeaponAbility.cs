@@ -149,9 +149,10 @@ public abstract class WeaponAbility : ActiveAbility
     /// <returns>damage</returns>
     protected float GetDamage()
     {
-        if (GetTarget() != null && bonusDamageType != null && GetTarget().GetComponent<Entity>())
+        var target = GetTarget();
+        if (target != null && bonusDamageType != null && target.GetComponent<Entity>())
         {
-            if (bonusDamageType.IsAssignableFrom(GetTarget().GetComponent<Entity>().GetType()))
+            if (bonusDamageType.IsAssignableFrom(target.GetComponent<Entity>().GetType()))
             {
                 return (damage + Core.GetDamageAddition()) * bonusDamageMultiplier;
             }

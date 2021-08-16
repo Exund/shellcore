@@ -16,9 +16,8 @@ public class Control : PassiveAbility
 
     public override void Deactivate()
     {
-        for (int i = 0; i < boosted.Count; i++)
+        foreach (var entity in boosted)
         {
-            var entity = boosted[i];
             if (!entity)
             {
                 continue;
@@ -33,11 +32,11 @@ public class Control : PassiveAbility
 
     protected override void Execute()
     {
-        for (int i = 0; i < AIData.entities.Count; i++)
+        foreach (var entity in AIData.entities)
         {
-            if (!AIData.entities[i].GetIsDead())
+            if (!entity.GetIsDead())
             {
-                Enhance(AIData.entities[i]);
+                Enhance(entity);
             }
         }
 

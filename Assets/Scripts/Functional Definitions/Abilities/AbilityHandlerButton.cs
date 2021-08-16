@@ -10,27 +10,33 @@ public class AbilityHandlerButton : MonoBehaviour, IPointerClickHandler, IPointe
     public AbilityHandler handler;
     public GameObject tooltipPrefab;
     private RectTransform tooltipTransform;
+    private Image image;
 
-    public void OnPointerClick(PointerEventData eventData)
+    void Awake()
     {
-        handler.SetCurrentVisible(type);
+        image = GetComponent<Image>();
     }
 
     void Update()
     {
         if (handler.currentVisibles != type)
         {
-            GetComponent<Image>().color = Color.black;
+            image.color = Color.black;
         }
         else
         {
-            GetComponent<Image>().color = new Color32(33, 33, 33, 255);
+            image.color = new Color32(33, 33, 33, 255);
         }
 
         if (tooltipTransform)
         {
             tooltipTransform.position = Input.mousePosition;
         }
+    }
+
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        handler.SetCurrentVisible(type);
     }
 
     public void OnPointerEnter(PointerEventData eventData)

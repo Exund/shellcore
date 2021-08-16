@@ -64,9 +64,10 @@ public class Harvester : WeaponAbility, IHarvester
     {
         if (owner && !owner.GetIsDead())
         {
-            owner.TakeShellDamage(-0.025F * owner.GetMaxHealth()[0], 0, null);
-            owner.TakeCoreDamage(-0.025F * owner.GetMaxHealth()[1]);
-            owner.TakeEnergy(-0.025F * owner.GetMaxHealth()[2]);
+            var maxHealths = owner.GetMaxHealth();
+            owner.TakeShellDamage(-0.025F * maxHealths[0], 0, null);
+            owner.TakeCoreDamage(-0.025F * maxHealths[1]);
+            owner.TakeEnergy(-0.025F * maxHealths[2]);
         }
     }
 }

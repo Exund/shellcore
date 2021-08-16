@@ -121,27 +121,28 @@ public class AbilityHandler : MonoBehaviour
 
         for (int i = 0; i < visibleAbilities.Count; i++)
         {
+            var visibleAbility = visibleAbilities[i];
             // iterate through to display all the abilities
-            if (visibleAbilities[i] == null)
+            if (visibleAbility == null)
             {
                 break;
             }
 
             // position them all, do not keep the world position
-            var id = (AbilityID)visibleAbilities[i].GetID();
-            var key = id != AbilityID.SpawnDrone ? ((int)id).ToString() : GetAHSpawnData((visibleAbilities[i] as SpawnDrone).spawnData.drone);
+            var id = (AbilityID)visibleAbility.GetID();
+            var key = id != AbilityID.SpawnDrone ? ((int)id).ToString() : GetAHSpawnData((visibleAbility as SpawnDrone).spawnData.drone);
             if (!betterBGboxArray.ContainsKey(key))
             {
                 Vector3 pos = new Vector3(GetAbilityPos(betterBGboxArray.Count), tileSpacing * 0.8F, this.transform.position.z); // find where to position the images
                 betterBGboxArray.Add(key,
                     Instantiate(betterBGbox, pos, Quaternion.identity).GetComponent<AbilityButtonScript>());
                 betterBGboxArray[key].transform.SetParent(transform, false); // set parent (do not keep world position)
-                betterBGboxArray[key].Init(visibleAbilities[i], i < 9 && currentVisibles != AbilityTypes.Passive ? keybindList[betterBGboxArray.Count - 1] : null, core,
+                betterBGboxArray[key].Init(visibleAbility, i < 9 && currentVisibles != AbilityTypes.Passive ? keybindList[betterBGboxArray.Count - 1] : null, core,
                     KeyName.Ability0 + (betterBGboxArray.Count - 1), displayAbilities != null);
             }
             else
             {
-                betterBGboxArray[key].AddAbility(visibleAbilities[i]);
+                betterBGboxArray[key].AddAbility(visibleAbility);
             }
         }
 
@@ -186,18 +187,19 @@ public class AbilityHandler : MonoBehaviour
             };
         }
 
-        if (visibleAbilityOrder.GetList((int)currentVisibles) == null || visibleAbilityOrder.GetList((int)currentVisibles).Count == 0)
+        var list = visibleAbilityOrder.GetList((int)currentVisibles);
+        if (list == null || list.Count == 0)
         {
-            visibleAbilityOrder.GetList((int)currentVisibles).Clear();
+            list.Clear();
             foreach (var i in instance.betterBGboxArray.Keys)
             {
                 if (currentVisibles == AbilityTypes.Spawns)
                 {
-                    (visibleAbilityOrder.GetList((int)currentVisibles) as List<string>).Add(i);
+                    (list as List<string>).Add(i);
                 }
                 else
                 {
-                    (visibleAbilityOrder.GetList((int)currentVisibles) as List<AbilityID>).Add((AbilityID)int.Parse(i));
+                    (list as List<AbilityID>).Add((AbilityID)int.Parse(i));
                 }
             }
         }
@@ -209,9 +211,10 @@ public class AbilityHandler : MonoBehaviour
 
     private static string GetAHSpawnData(string data)
     {
-        if (DroneUtilities.GetDroneSpawnDataByShorthand(data).drone != null)
+        var drone = DroneUtilities.GetDroneSpawnDataByShorthand(data).drone;
+        if (drone != null)
         {
-            return DroneUtilities.GetDroneSpawnDataByShorthand(data).drone;
+            return drone;
         }
         else
         {
@@ -357,19 +360,20 @@ public class AbilityHandler : MonoBehaviour
         {
             for (int i = 0; i < core.GetAbilities().Length; i++)
             {
+                var ability = abilities[i];
                 // update all abilities
-                if (abilities[i] == null || core.GetIsDead())
+                if (ability == null || core.GetIsDead())
                 {
                     continue;
                 }
 
                 // skip ability instead of break because further abilities may not be destroyed
-                if (visibleAbilities.Contains(abilities[i]))
+                if (visibleAbilities.Contains(ability))
                 {
                 }
                 else //abilities[i].UpdateState();
                 {
-                    abilities[i].Tick();
+                    ability.Tick();
                 }
             }
 

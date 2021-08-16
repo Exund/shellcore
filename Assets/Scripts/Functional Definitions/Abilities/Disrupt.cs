@@ -26,14 +26,14 @@ public class Disrupt : Ability
     /// </summary>
     protected override void Execute()
     {
-        for (int i = 0; i < AIData.entities.Count; i++)
+        foreach (var entity in AIData.entities)
         {
-            if (AIData.entities[i] is Craft && !AIData.entities[i].GetIsDead() && !FactionManager.IsAllied(AIData.entities[i].faction, Core.faction) && !AIData.entities[i].IsInvisible)
+            if (entity is Craft && !entity.GetIsDead() && !FactionManager.IsAllied(entity.faction, Core.faction) && !entity.IsInvisible)
             {
-                float d = (Core.transform.position - AIData.entities[i].transform.position).sqrMagnitude;
+                float d = (Core.transform.position - entity.transform.position).sqrMagnitude;
                 if (d < range * range)
                 {
-                    foreach (var ability in AIData.entities[i].GetAbilities())
+                    foreach (var ability in entity.GetAbilities())
                     {
                         if (ability != null && ability.TimeUntilReady() > 0)
                         {
@@ -41,7 +41,7 @@ public class Disrupt : Ability
                         }
                     }
 
-                    foreach (var part in AIData.entities[i].GetComponentsInChildren<ShellPart>())
+                    foreach (var part in entity.GetComponentsInChildren<ShellPart>())
                     {
                         if (part.GetComponent<Ability>() && !(part.GetComponent<Ability>() as PassiveAbility))
                         {
