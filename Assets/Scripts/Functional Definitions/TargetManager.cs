@@ -99,34 +99,35 @@ public class TargetManager : MonoBehaviour
 
         for (int i = 0; i < AIData.entities.Count; i++)
         {
-            positions[i] = AIData.entities[i].transform.position;
-            factions[i] = AIData.entities[i].faction;
+            var entity = AIData.entities[i];
+            positions[i] = entity.transform.position;
+            factions[i] = entity.faction;
 
-            if (AIData.entities[i].GetIsDead()
-                || AIData.entities[i].IsInvisible)
+            if (entity.GetIsDead() || entity.IsInvisible)
             {
                 continue;
             }
 
-            int faction = AIData.entities[i].faction;
-            if ((AIData.entities[i].GetTerrain() & Entity.TerrainType.Air) != 0)
+            int faction = entity.faction;
+            var terrain = entity.GetTerrain();
+            if ((terrain & Entity.TerrainType.Air) != 0)
             {
                 if (!airTargets.ContainsKey(faction))
                 {
                     airTargets[faction] = new List<Entity>();
                 }
 
-                airTargets[faction].Add(AIData.entities[i]);
+                airTargets[faction].Add(entity);
             }
 
-            if ((AIData.entities[i].GetTerrain() & Entity.TerrainType.Ground) != 0)
+            if ((terrain & Entity.TerrainType.Ground) != 0)
             {
                 if (!groundTargets.ContainsKey(faction))
                 {
                     groundTargets[faction] = new List<Entity>();
                 }
 
-                groundTargets[faction].Add(AIData.entities[i]);
+                groundTargets[faction].Add(entity);
             }
         }
 
@@ -158,7 +159,8 @@ public class TargetManager : MonoBehaviour
                 continue;
             }
 
-            if (ts.GetAbility() == null)
+            var ability = ts.GetAbility();
+            if (ability == null)
             {
                 if (airTargets.ContainsKey(i))
                 {
@@ -172,13 +174,13 @@ public class TargetManager : MonoBehaviour
             }
             else
             {
-                if (ts.GetAbility().TerrainCheck(Entity.TerrainType.Air)
+                if (ability.TerrainCheck(Entity.TerrainType.Air)
                     && airTargets.ContainsKey(i))
                 {
                     targets.AddRange(airTargets[i]);
                 }
 
-                if (ts.GetAbility().TerrainCheck(Entity.TerrainType.Ground)
+                if (ability.TerrainCheck(Entity.TerrainType.Ground)
                     && groundTargets.ContainsKey(i))
                 {
                     targets.AddRange(groundTargets[i]);
@@ -193,30 +195,31 @@ public class TargetManager : MonoBehaviour
     {
         Transform closest = null;
         float closestD = float.MaxValue;
-        var pos = ts.GetAbility() ? ts.GetAbility().transform.position : ts.GetEntity().transform.position;
+        var ability = ts.GetAbility();
+        var entity = ts.GetEntity();
+        var pos = ability ? ability.transform.position : entity.transform.position;
 
-        for (int i = 0; i < targets.Count; i++) // go through all entities and check them for several factors
+        foreach (var target in targets)
         {
             // check if the target's category matches
-            if (ec == Entity.EntityCategory.All || targets[i].category == ec)
+            if (ec == Entity.EntityCategory.All || target.category == ec)
             {
                 // check if it is the closest entity that passed the checks so far
-                float sqrD = Vector3.SqrMagnitude(pos - targets[i].transform.position);
+                float sqrD = Vector3.SqrMagnitude(pos - target.transform.position);
                 if (closest == null || sqrD < closestD)
                 {
-                    if (targets[i] == ts.GetEntity())
+                    if (target == entity)
                     {
                         continue;
                     }
-
-                    var ability = ts.GetAbility();
+                    
                     if (ability != null && sqrD >= ability.GetRange() * ability.GetRange())
                     {
                         continue;
                     }
 
                     closestD = sqrD;
-                    closest = targets[i].transform;
+                    closest = target.transform;
                 }
             }
         }

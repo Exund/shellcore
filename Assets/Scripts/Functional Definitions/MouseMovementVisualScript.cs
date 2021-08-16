@@ -31,7 +31,8 @@ public class MouseMovementVisualScript : MonoBehaviour
 
     public static void Focus()
     {
-        overMinimap = GetMousePosOnMinimap().x > 0 && GetMousePosOnMinimap().y > 0;
+        var mousePosMinimap = GetMousePosOnMinimap();
+        overMinimap = mousePosMinimap.x > 0 && mousePosMinimap.y > 0;
         instance.deltaLineRenderer.positionCount = 2;
         instance.deltaLineRenderer.SetPosition(0, PlayerCore.Instance.transform.position);
         if (Input.GetMouseButton(1))
@@ -41,7 +42,7 @@ public class MouseMovementVisualScript : MonoBehaviour
         }
         else if (Input.GetMouseButton(0) && overMinimap)
         {
-            instance.deltaLineRenderer.SetPosition(1, instance.minimapCamera.ScreenToWorldPoint(GetMousePosOnMinimap()));
+            instance.deltaLineRenderer.SetPosition(1, instance.minimapCamera.ScreenToWorldPoint(mousePosMinimap));
         }
         else if (PlayerCore.Instance.GetMinimapPoint().HasValue)
         {

@@ -46,9 +46,9 @@ public class ResourceManager : MonoBehaviour
 
         //Add built in resources to dictionaries
 
-        for (int i = 0; i < resourcePack.resources.Count; i++)
+        foreach (var resource in resourcePack.resources)
         {
-            resources.Add(resourcePack.resources[i].ID, resourcePack.resources[i].obj);
+            resources.Add(resource.ID, resource.obj);
         }
 
         LoadResources(Application.streamingAssetsPath);
@@ -97,9 +97,8 @@ public class ResourceManager : MonoBehaviour
             int mode = -1;
 
             //get files
-            for (int i = 0; i < lines.Length; i++)
+            foreach (var line in lines)
             {
-                string line = lines[i];
                 if (line == "")
                 {
                     continue;
@@ -252,9 +251,8 @@ public class ResourceManager : MonoBehaviour
         {
             string[] lines = File.ReadAllLines(resDataPath);
             //get files
-            for (int i = 0; i < lines.Length; i++)
+            foreach (var line in lines)
             {
-                string line = lines[i];
                 if (line == "")
                 {
                     continue;
